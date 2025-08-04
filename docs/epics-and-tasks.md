@@ -40,14 +40,14 @@ This document breaks down the Puhua development plan into manageable Epics and T
   - [X] Create folder structure for server (controllers, services, routes, types, utils)
   - [X] Create folder structure for webapp (components, stores, services, types)
   - [ ] Set up TypeScript interfaces and types
-  - [ ] Create basic Express app structure
-  - [ ] Set up development scripts and environment configuration
+  - [X] Create basic Express app structure
+  - [X] Set up development scripts and environment configuration
 
 #### 1.4 Environment Configuration
 - **Story Points:** 2
 - **Assignee:** Developer
 - **Acceptance Criteria:**
-  - [ ] Configure Supabase environment variables
+  - [X] Configure Supabase environment variables
   - [ ] Set up Azure Speech API credentials
   - [ ] Configure development and production environments
   - [ ] Test all API connections

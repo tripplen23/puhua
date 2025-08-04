@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../configs/dbConfig';
 import { User } from '../types/users';
+import { InternalServerError } from '../errors/apiErrors';
 
 /**
  * GET /api/users
@@ -11,7 +12,7 @@ export const getAllUsers = async (_req: Request, res: Response, next: NextFuncti
     const { data, error } = await supabase.from('users').select('*');
 
     if (error) {
-      res.status(500).json({ message: error.message });
+      next(new InternalServerError(error.message));
       return;
     }
 
