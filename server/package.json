@@ -4,6 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "nodemon --exec ts-node src/app.ts",
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "test-db": "ts-node test-db.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -11,9 +15,23 @@
   "license": "ISC",
   "packageManager": "pnpm@10.10.0",
   "dependencies": {
-    "express": "^5.1.0"
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@supabase/supabase-js": "^2.53.0",
+    "axios": "^1.11.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "microsoft-cognitiveservices-speech-sdk": "^1.45.0",
+    "ytdl-core": "^4.11.5",
+    "morgan": "^1.10.0"
   },
   "devDependencies": {
-    "@types/express": "^5.0.3"
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2",
+    "@types/node": "^20.11.21",
+    "@types/morgan": "^1.9.5"
   }
 }
