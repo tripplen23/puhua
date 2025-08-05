@@ -8,6 +8,7 @@
     "build": "tsc",
     "start": "node dist/app.js",
     "test-db": "ts-node test-db.ts",
+    "test-azure-speech": "ts-node test-azure-speech.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

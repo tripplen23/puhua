@@ -48,9 +48,9 @@ This document breaks down the Puhua development plan into manageable Epics and T
 - **Assignee:** Developer
 - **Acceptance Criteria:**
   - [X] Configure Supabase environment variables
-  - [ ] Set up Azure Speech API credentials
+  - [X] Set up Azure Speech API credentials
   - [ ] Configure development and production environments
-  - [ ] Test all API connections
+  - [X] Test all API connections
   - [ ] Document environment setup process
 
 ---
@@ -106,7 +106,7 @@ This document breaks down the Puhua development plan into manageable Epics and T
 - **Assignee:** Backend Developer
 - **Acceptance Criteria:**
   - [ ] Implement YouTube audio extraction using ytdl-core
-  - [ ] Set up audio file processing with fluent-ffmpeg
+  - [ ] Set up audio file processing with @ffmpeg/ffmpeg
   - [ ] Create audio format conversion pipeline
   - [ ] Handle YouTube API rate limits and errors
   - [ ] Store processed audio files in Supabase
