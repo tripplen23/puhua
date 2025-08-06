@@ -1,4 +1,4 @@
-import { azureSpeechConfig } from '../configs/azureConfig';
+import { azureSpeechConfig } from '../configs/azureSpeechConfig';
 
 /**
  * Test Azure Speech Service connection

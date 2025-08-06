@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import morgan from 'morgan';
 
 import userRoutes from './routes/userRoutes';
+import learningMaterialRoutes from './routes/learningMaterialRoutes';
+import { initializeContainer } from './configs/azureBlobConfig';
 
 // Load environment variables from .env
 dotenv.config();
@@ -23,6 +25,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
 
 // Mount feature routes
 app.use('/api/users', userRoutes);
+app.use('/api/learning-materials', learningMaterialRoutes);
 
 // Global error handler
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -33,8 +36,15 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 
 // Start server only if executed directly (not when imported)
 if (require.main === module) {
-  app.listen(PORT, () => {
+  app.listen(PORT, async () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
+    
+    // Initialize Azure Blob Storage
+    try {
+      await initializeContainer();
+    } catch (error) {
+      console.error('⚠️ Failed to initialize Azure Blob Storage:', error);
+    }
   });
 }
 

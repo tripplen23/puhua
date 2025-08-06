@@ -94,52 +94,70 @@ This document breaks down the Puhua development plan into manageable Epics and T
 
 ---
 
-## EPIC 3: Speech Segmentation Pipeline
+## EPIC 3: Learning Material Processing Pipeline
 **Duration:** Week 2 (Part 2)  
 **Priority:** High  
-**Description:** Implement AI-powered speech segmentation system
+**Description:** End-to-end pipeline that converts a YouTube URL into interactive learning material with bilingual subtitles.
 
 ### Tasks:
 
-#### 3.1 YouTube Audio Processing
-- **Story Points:** 8
-- **Assignee:** Backend Developer
-- **Acceptance Criteria:**
-  - [ ] Implement YouTube audio extraction using ytdl-core
-  - [ ] Set up audio file processing with @ffmpeg/ffmpeg
-  - [ ] Create audio format conversion pipeline
-  - [ ] Handle YouTube API rate limits and errors
-  - [ ] Store processed audio files in Supabase
-
-#### 3.2 Azure Speech Integration
-- **Story Points:** 8
-- **Assignee:** Backend Developer
-- **Acceptance Criteria:**
-  - [ ] Integrate Azure Speech-to-Text API
-  - [ ] Implement speech recognition with timestamps
-  - [ ] Create intelligent segment detection algorithm
-  - [ ] Generate optimal shadowing segments (2-8 seconds)
-  - [ ] Store segment data in database
-
-#### 3.3 Segmentation API Endpoints
+#### 3.1 Video & Audio Ingestion
 - **Story Points:** 5
 - **Assignee:** Backend Developer
 - **Acceptance Criteria:**
-  - [ ] Create POST /api/videos/process endpoint
-  - [ ] Create GET /api/videos/:id/segments endpoint
-  - [ ] Implement error handling and validation
-  - [ ] Add processing status tracking
-  - [ ] Document API endpoints
+  - [X] Download YouTube video using `ytdl-core` and store original file in Azure Blob Storage
+  - [X] Extract audio track with `@ffmpeg/ffmpeg`
+  - [X] Convert audio to WAV 16-kHz mono suitable for Azure Speech
+  - [X] Handle YouTube rate limits & transient errors
+  - [X] Persist video & audio metadata in Supabase database
 
-#### 3.4 Segmentation Quality Control
+#### 3.2 Speech-to-Text & Segmentation
+- **Story Points:** 8
+- **Assignee:** Backend Developer
+- **Acceptance Criteria:**
+  - [ ] Send audio to Azure Speech-to-Text API
+  - [ ] Receive word-level timestamps
+  - [ ] Generate sentence-level segments (2-8 s) algorithmically
+  - [ ] Store segment timing data in database
+  - [ ] Expose confidence metrics for quality control
+
+#### 3.3 Subtitle Generation & Translation
+- **Story Points:** 5
+- **Assignee:** Backend Developer
+- **Acceptance Criteria:**
+  - [ ] Assemble Finnish subtitle file (SRT / VTT) from STT results
+  - [ ] Translate subtitles to English using Azure Translator or OpenAI
+  - [ ] Align bilingual subtitles with segment timings
+  - [ ] Store subtitle assets in Supabase
+  - [ ] Provide download link for QA
+
+#### 3.4 Learning Material Assembly
+- **Story Points:** 5
+- **Assignee:** Full-stack Developer
+- **Acceptance Criteria:**
+  - [ ] Combine video, segment data and bilingual subtitles into a single “learning material” record
+  - [ ] Generate pre-signed URLs for client playback
+  - [ ] Create preview thumbnail & metadata
+  - [ ] Mark processing status (queued, processing, ready, failed)
+
+#### 3.5 Processing API Endpoints
+- **Story Points:** 5
+- **Assignee:** Backend Developer
+- **Acceptance Criteria:**
+  - [ ] POST `/api/learning-materials` → enqueue processing job with YouTube URL
+  - [ ] GET `/api/learning-materials/:id` → return material with segments & subtitles
+  - [ ] Implement input validation & error handling
+  - [ ] Track job progress via status field
+  - [ ] Document endpoints with OpenAPI
+
+#### 3.6 Quality Control & Manual Fixes
 - **Story Points:** 3
 - **Assignee:** Backend Developer
 - **Acceptance Criteria:**
-  - [ ] Implement segment quality validation
-  - [ ] Add manual segment adjustment capability
-  - [ ] Create segment preview functionality
-  - [ ] Test with various Finnish speech patterns
-  - [ ] Optimize segment break detection
+  - [ ] Provide endpoint to update segment boundaries manually
+  - [ ] Add admin UI flag for low-confidence segments
+  - [ ] Write integration tests on diverse Finnish speech
+  - [ ] Optimize segmentation parameters based on feedback
 
 ---
 
