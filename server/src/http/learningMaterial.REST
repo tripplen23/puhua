@@ -2,5 +2,5 @@ POST http://localhost:3001/api/learning-materials
 Content-Type: application/json
 
 {
-    "youtubeUrl": "https://www.youtube.com/watch?v=8PBnMyAK2j4"
+    "youtubeUrl": "https://www.youtube.com/watch?v=Q4Ad199Z1X8"
 }

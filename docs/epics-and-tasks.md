@@ -115,11 +115,10 @@ This document breaks down the Puhua development plan into manageable Epics and T
 - **Story Points:** 8
 - **Assignee:** Backend Developer
 - **Acceptance Criteria:**
-  - [ ] Send audio to Azure Speech-to-Text API
+  - [X] Send audio to Azure Speech-to-Text API
+  - [X] Generate sentence-level segments (2-8 s) by AI
   - [ ] Receive word-level timestamps
-  - [ ] Generate sentence-level segments (2-8 s) algorithmically
   - [ ] Store segment timing data in database
-  - [ ] Expose confidence metrics for quality control
 
 #### 3.3 Subtitle Generation & Translation
 - **Story Points:** 5

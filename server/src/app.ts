@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import userRoutes from './routes/userRoutes';
 import learningMaterialRoutes from './routes/learningMaterialRoutes';
 import { initializeContainer } from './configs/azureBlobConfig';
+import { logger, stream } from './configs/logger';
 
 // Load environment variables from .env
 dotenv.config();
@@ -16,7 +17,7 @@ const PORT = process.env.PORT || 4000;
 // Global middleware
 app.use(cors());
 app.use(express.json());
-app.use(morgan('dev'));
+app.use(morgan('combined', { stream }));
 
 // Health-check endpoint
 app.get('/api/health', (_req: Request, res: Response) => {
@@ -30,20 +31,21 @@ app.use('/api/learning-materials', learningMaterialRoutes);
 // Global error handler
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  console.error(err);
+  logger.error(`Global error handler: ${err.message}`, { stack: err.stack });
   res.status(500).json({ message: 'Internal Server Error' });
 });
 
 // Start server only if executed directly (not when imported)
 if (require.main === module) {
   app.listen(PORT, async () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    logger.info(`🚀 Server running on http://localhost:${PORT}`);
     
     // Initialize Azure Blob Storage
     try {
       await initializeContainer();
+      logger.info('✅ Azure Blob Storage initialized successfully');
     } catch (error) {
-      console.error('⚠️ Failed to initialize Azure Blob Storage:', error);
+      logger.error('⚠️ Failed to initialize Azure Blob Storage:', error);
     }
   });
 }

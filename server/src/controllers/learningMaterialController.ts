@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { processYouTubeVideo } from '../services/learningMaterialService';
 import { CreateLearningMaterialRequest, CreateLearningMaterialResponse } from '../types/learningMaterial';
+import { logger } from '../configs/logger';
 
 export const createLearningMaterial = async (
   req: Request,
@@ -25,7 +26,7 @@ export const createLearningMaterial = async (
       return;
     }
     
-    console.log(`🚀 Processing request for YouTube URL: ${youtubeUrl}`);
+    logger.info(`🚀 Processing request for YouTube URL: ${youtubeUrl}`);
     
     // Process the YouTube video
     const result = await processYouTubeVideo(youtubeUrl.trim());
@@ -40,11 +41,11 @@ export const createLearningMaterial = async (
       createdAt: new Date().toISOString(),
     };
     
-    console.log(`✅ Successfully processed learning material: ${result.id}`);
+    logger.info(`✅ Successfully processed learning material: ${result.id}`);
     res.status(201).json(response);
     
   } catch (error) {
-    console.error('❌ Error in createLearningMaterial:', error);
+    logger.error('❌ Error in createLearningMaterial:', error);
     
     // Handle specific error types
     if (error instanceof Error) {

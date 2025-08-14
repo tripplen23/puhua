@@ -1,6 +1,7 @@
 import { blobServiceClient, containerName, initializeContainer } from '../../configs/azureBlobConfig';
 import { Readable } from 'stream';
 import { spawn } from 'child_process';
+import { logger } from '../../configs/logger';
 
 // Helper function to convert stream to buffer
 const streamToBuffer = async (stream: Readable): Promise<Buffer> => {
@@ -45,7 +46,7 @@ const extractAudioFromBuffer = async (videoBuffer: Buffer): Promise<Buffer> => {
         const audioBuffer = Buffer.concat(audioChunks);
         resolve(audioBuffer);
       } else {
-        console.error('FFmpeg stderr:', errorOutput);
+        logger.error('FFmpeg stderr:', errorOutput);
         reject(new Error(`FFmpeg process exited with code ${code}`));
       }
     });

@@ -11,7 +11,6 @@
     "rootDir": "."
   },
   "include": [
-    "src/**/*",
-    "test-db.ts"
+    "src/**/*"
   ]
 }

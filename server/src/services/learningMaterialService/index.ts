@@ -3,6 +3,9 @@ import ytdl from '@distube/ytdl-core';
 import { v4 as uuidv4 } from 'uuid';
 import { LearningMaterialRecord } from '../../types/learningMaterial';
 import { streamToBuffer, extractAudioFromBuffer, uploadToBlob } from './helpers';
+import { transcribeAudio, validateAudioFormat } from './speechService';
+import { segmentTranscriptionForLearning } from './aiSegmentService';
+import { logger } from '../../configs/logger';
 
 // Main processing function
 export const processYouTubeVideo = async (youtubeUrl: string): Promise<{
@@ -22,35 +25,73 @@ export const processYouTubeVideo = async (youtubeUrl: string): Promise<{
   
   try {
     // Step A: Input YouTube URL (already received)
-    console.log(`🎬 Processing YouTube video: ${youtubeUrl}`);
+    logger.info(`🎬 Processing YouTube video: ${youtubeUrl}`);
     
     // Step B: Extract audio from the YouTube video
-    console.log('📥 Downloading video stream...');
+    logger.info('📥 Downloading video stream...');
     const videoStream = ytdl(youtubeUrl, {
       quality: 'highest',
       filter: 'audioandvideo',
     });
     
     const videoBuffer = await streamToBuffer(videoStream);
-    console.log(`✅ Video downloaded: ${videoBuffer.length} bytes`);
+    logger.info(`✅ Video downloaded: ${videoBuffer.length} bytes`);
     
     // Extract audio using system FFmpeg
-    console.log('🎵 Extracting and converting audio with FFmpeg...');
+    logger.info('🎵 Extracting and converting audio with FFmpeg...');
     
     const audioBuffer = await extractAudioFromBuffer(videoBuffer);
-    console.log(`✅ Audio extracted: ${audioBuffer.length} bytes`);
+    logger.info(`✅ Audio extracted: ${audioBuffer.length} bytes`);
     
     // Step C: Upload audio and video to Azure Blob Storage
-    console.log('☁️ Uploading to Azure Blob Storage...');
+    logger.info('☁️ Uploading to Azure Blob Storage...');
     
     const [videoUrl, audioUrl] = await Promise.all([
       uploadToBlob(videoFilename, videoBuffer, 'video/mp4'),
       uploadToBlob(audioFilename, audioBuffer, 'audio/wav'),
     ]);
     
-    console.log('✅ Files uploaded to Azure Blob Storage');
-    console.log(`📹 Video URL: ${videoUrl}`);
-    console.log(`🎵 Audio URL: ${audioUrl}`);
+    logger.info('✅ Files uploaded to Azure Blob Storage');
+    logger.info(`📹 Video URL: ${videoUrl}`);
+    logger.info(`🎵 Audio URL: ${audioUrl}`);
+    
+    // Step D: Send audio to Azure Speech Service for transcription
+    logger.info('🎤 Starting speech-to-text transcription...');
+    
+    let transcriptionResult = null;
+    try {
+      // Validate audio format before sending to Speech API
+      if (!validateAudioFormat(audioBuffer)) {
+        throw new Error('Invalid audio format for speech recognition');
+      }
+      
+      transcriptionResult = await transcribeAudio(audioBuffer, 'fi-FI');
+      logger.info('✅ Speech-to-text completed');
+      logger.info(`📝 Transcription: ${transcriptionResult.transcription.substring(0, 100)}...`);
+      logger.info(`⏱️ Duration: ${transcriptionResult.duration}s`);
+    } catch (speechError) {
+      logger.error('⚠️ Speech-to-text failed:', speechError);
+    }
+    
+    // Step E: AI-powered chunking for optimal learning segments
+    let aiGeneratedSegments: any = undefined;
+    if (transcriptionResult) {
+      try {
+        logger.info('🤖 Starting AI-powered segmentation for learning optimization...');
+        
+        const segmentationResult = await segmentTranscriptionForLearning(
+          transcriptionResult.transcription
+        );
+        
+        aiGeneratedSegments = segmentationResult.transcriptionSegments;
+        logger.info('✅ AI segmentation completed');
+        logger.info(`📚 AI segments: ${segmentationResult.segmentCount}`);
+        
+      } catch (segmentationError) {
+        logger.error('⚠️ AI segmentation failed:', segmentationError);
+        throw segmentationError;
+      }
+    }
     
     // Persist metadata in Supabase database
     const learningMaterialRecord: Omit<LearningMaterialRecord, 'created_at' | 'updated_at'> = {
@@ -62,6 +103,10 @@ export const processYouTubeVideo = async (youtubeUrl: string): Promise<{
       audio_filename: audioFilename,
       video_size_bytes: videoBuffer.length,
       audio_size_bytes: audioBuffer.length,
+      duration_seconds: transcriptionResult?.duration,
+      transcription: transcriptionResult?.transcription,
+      transcription_language: transcriptionResult?.language,
+      transcription_segments: aiGeneratedSegments,
       status: 'completed',
     };
     
@@ -74,11 +119,11 @@ export const processYouTubeVideo = async (youtubeUrl: string): Promise<{
       });
     
     if (error) {
-      console.error('❌ Database error:', error);
+      logger.error('❌ Database error:', error);
       throw new Error(`Failed to save metadata: ${error.message}`);
     }
     
-    console.log('✅ Metadata saved to database');
+    logger.info('✅ Metadata saved to database');
     
     return {
       id: materialId,
@@ -87,7 +132,7 @@ export const processYouTubeVideo = async (youtubeUrl: string): Promise<{
     };
     
   } catch (error) {
-    console.error('❌ Processing failed:', error);
+    logger.error('❌ Processing failed:', error);
     
     // Update database with error status
     await supabase

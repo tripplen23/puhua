@@ -21,8 +21,18 @@ export interface LearningMaterialRecord {
   video_size_bytes: number;
   audio_size_bytes: number;
   duration_seconds?: number;
+  transcription?: string;
+  transcription_language?: string;
+  transcription_segments?: TranscriptionSegment[];
   status: 'processing' | 'completed' | 'failed';
   error_message?: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface TranscriptionSegment {
+  text: string;
+  segmentType: 'sentence' | 'phrase' | 'greeting' | 'question' | 'dialogue';
+  speakerHint: string; // 'speaker1', 'speaker2', 'narrator', etc.
+  contextNotes: string; // Additional context for learners
 }
