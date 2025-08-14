@@ -1,4 +1,4 @@
-import { azureOpenAIService } from '../langchain/azureOpenAIService';
+import { azureOpenAIService } from '../../langchain/azureOpenAIService';
 import { logger } from '../../configs/logger';
 import { TranscriptionSegment } from '../../types/learningMaterial';
 

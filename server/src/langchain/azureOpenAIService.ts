@@ -1,5 +1,5 @@
 import { logger } from '@azure/storage-blob';
-import { createLLM, AIModelPresets } from '../../configs/aiConfig';
+import { createLLM, AIModelPresets } from '../configs/aiConfig';
 import { PromptRegistry } from './promptRegistry';
 
 /**

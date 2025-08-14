@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { processYouTubeVideo } from '../services/learningMaterialService';
+import { processYouTubeVideo } from '../services/learningMaterialPipeline';
 import { CreateLearningMaterialRequest, CreateLearningMaterialResponse } from '../types/learningMaterial';
 import { logger } from '../configs/logger';
 
