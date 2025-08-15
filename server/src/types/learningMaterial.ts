@@ -24,6 +24,10 @@ export interface LearningMaterialRecord {
   transcription?: string;
   transcription_language?: string;
   transcription_segments?: TranscriptionSegment[];
+  webvtt_blob_url?: string;
+  srt_blob_url?: string;
+  webvtt_filename?: string;
+  srt_filename?: string;
   status: 'processing' | 'completed' | 'failed';
   error_message?: string;
   created_at: string;
@@ -32,7 +36,22 @@ export interface LearningMaterialRecord {
 
 export interface TranscriptionSegment {
   text: string;
+  startTime: number; // Start time in seconds
+  endTime: number; // End time in seconds
   segmentType: 'sentence' | 'phrase' | 'greeting' | 'question' | 'dialogue';
   speakerHint: string; // 'speaker1', 'speaker2', 'narrator', etc.
   contextNotes: string; // Additional context for learners
+}
+
+// Additional interfaces for subtitle generation
+export interface SubtitleCue {
+  id: string;
+  startTime: number;
+  endTime: number;
+  text: string;
+}
+
+export interface SubtitleFormat {
+  webvtt: string;
+  srt: string;
 }

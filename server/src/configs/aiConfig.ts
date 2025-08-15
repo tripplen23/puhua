@@ -87,8 +87,8 @@ export const createLLM = (config?: Partial<AIModelConfig>): AzureChatOpenAI => {
  */
 export const AIModelPresets = {
   finnishSegmentation: {
-    temperature: 0.7,
-    maxTokens: 6000,
+    temperature: 0.5,
+    maxTokens: 16384,
   },
 
   healthCheck: {

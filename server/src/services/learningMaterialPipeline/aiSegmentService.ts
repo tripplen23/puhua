@@ -60,7 +60,7 @@ export const segmentTranscriptionForLearning = async (
     }
 
     // Process AI-generated segments
-    const transcriptionSegments: TranscriptionSegment[] = parsedResponse.segments || [];
+    let transcriptionSegments: TranscriptionSegment[] = parsedResponse.segments || [];
 
     logger.info(`✅ AI segmentation completed: ${transcriptionSegments.length} transcription segments`);
     

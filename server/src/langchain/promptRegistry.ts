@@ -29,7 +29,7 @@ export const createFinnishSegmentationPrompt = () => new PromptTemplate({
   3. Consider Finnish conversational markers and social cues
   4. Break at natural pauses between speakers
 
-  Please break this into 10-20 optimal learning segments. For each segment, provide:
+  Please break this into optimal learning segments covering the ENTIRE transcription. Aim for comprehensive coverage - every word should be included in a segment. For each segment, provide:
   1. The Finnish text (exactly as transcribed)
   2. Segment type (sentence/phrase/greeting/question/dialogue)
   3. Speaker hint if you detect a likely speaker change
@@ -39,20 +39,28 @@ export const createFinnishSegmentationPrompt = () => new PromptTemplate({
   {{
     "segments": [
       {{
-        "text": "Hei, minä olen Jutta Schneider.",
-        "segmentType": "greeting",
+        "text": "Minä haluan sitä terveellistä margariinia.",
+        "segmentType": "statement",
         "speakerHint": "speaker1",
-        "contextNotes": "Introduction by first speaker"
+        "contextNotes": "Expressing the desiration to buy some margarine."
       }},
       {{
-        "text": "Kiitos, minä olen Kari.",
-        "segmentType": "dialogue",
+        "text": "Mitä margariinia? Minä ostan aina voita",
+        "segmentType": "question",
         "speakerHint": "speaker2",
-        "contextNotes": "Response from second speaker"
+        "contextNotes": "Asking for clarification. And have recommendation."
+      }},
+      {{
+        "text": "sitä Flora.",
+        "segmentType": "statement",
+        "speakerHint": "speaker2",
+        "contextNotes": "Point to the Flora margarine in the supermarket."
       }}
     ]
   }}
 
+  IMPORTANT: You must segment the ENTIRE transcription. Do not stop until every word from the original transcription is included in a segment. If the transcription is long, create as many segments as needed for complete coverage.
+  
   Focus on creating segments that help learners understand dialogue flow and practice natural Finnish conversation patterns.`
 });
 

@@ -5,7 +5,9 @@ import { LearningMaterialRecord } from '../../types/learningMaterial';
 import { streamToBuffer, extractAudioFromBuffer, uploadToBlob } from './helpers';
 import { transcribeAudio, validateAudioFormat } from './speechService';
 import { segmentTranscriptionForLearning } from './aiSegmentService';
+import { generateSubtitles, validateSubtitleTiming } from './subtitleService';
 import { logger } from '../../configs/logger';
+import { syncTime } from './syncTimeService';
 
 // Main processing function
 export const processYouTubeVideo = async (youtubeUrl: string): Promise<{
@@ -22,6 +24,8 @@ export const processYouTubeVideo = async (youtubeUrl: string): Promise<{
   const timestamp = Date.now();
   const videoFilename = `${materialId}/video_${timestamp}.mp4`;
   const audioFilename = `${materialId}/audio_${timestamp}.wav`;
+  const webvttFilename = `${materialId}/subtitles_${timestamp}.vtt`;
+  const srtFilename = `${materialId}/subtitles_${timestamp}.srt`;
   
   try {
     // Step A: Input YouTube URL (already received)
@@ -39,7 +43,6 @@ export const processYouTubeVideo = async (youtubeUrl: string): Promise<{
     
     // Extract audio using system FFmpeg
     logger.info('🎵 Extracting and converting audio with FFmpeg...');
-    
     const audioBuffer = await extractAudioFromBuffer(videoBuffer);
     logger.info(`✅ Audio extracted: ${audioBuffer.length} bytes`);
     
@@ -73,23 +76,77 @@ export const processYouTubeVideo = async (youtubeUrl: string): Promise<{
       logger.error('⚠️ Speech-to-text failed:', speechError);
     }
     
-    // Step E: AI-powered chunking for optimal learning segments
-    let aiGeneratedSegments: any = undefined;
+    // Step E: AI-powered enhancement of segments for optimal learning
+    let finalSegments: any = undefined;
+    let subtitleFiles: { webvtt: string; srt: string } | undefined = undefined;
+    
     if (transcriptionResult) {
       try {
-        logger.info('🤖 Starting AI-powered segmentation for learning optimization...');
+        logger.info('🤖 Starting AI-powered segment enhancement...');
         
-        const segmentationResult = await segmentTranscriptionForLearning(
-          transcriptionResult.transcription
-        );
+        // Start with timing-based segments from speech recognition
+        let enhancedSegments = transcriptionResult.segments;
         
-        aiGeneratedSegments = segmentationResult.transcriptionSegments;
-        logger.info('✅ AI segmentation completed');
-        logger.info(`📚 AI segments: ${segmentationResult.segmentCount}`);
+        // Use AI to enhance segment classification and context
+        if (enhancedSegments.length > 0) {
+          const segmentationResult = await segmentTranscriptionForLearning(
+            transcriptionResult.transcription
+          );
+          
+          // Merge AI insights with timing information
+          enhancedSegments = syncTime(
+            enhancedSegments,
+            segmentationResult.transcriptionSegments
+          );
+          
+          logger.info('✅ AI segment enhancement completed');
+          logger.info(`📚 Enhanced segments: ${enhancedSegments.length}`);
+          
+          // Step F: Generate synchronized subtitles
+          logger.info('📝 Generating synchronized subtitles...');
+          
+          // Validate timing before generating subtitles
+          const timingWarnings = validateSubtitleTiming(enhancedSegments);
+          if (timingWarnings.length > 0) {
+            logger.warn(`⚠️ Timing validation warnings: ${timingWarnings.length}`);
+          }
+          
+          // Generate WebVTT and SRT subtitle formats
+          subtitleFiles = generateSubtitles(enhancedSegments);
+          logger.info('✅ Subtitles generated successfully');
+          
+          finalSegments = enhancedSegments;
+        }
         
       } catch (segmentationError) {
-        logger.error('⚠️ AI segmentation failed:', segmentationError);
-        throw segmentationError;
+        logger.error('⚠️ AI segment enhancement failed:', segmentationError);
+        // Fall back to basic segments from speech recognition
+        finalSegments = transcriptionResult.segments;
+        logger.info('📋 Using basic segments from speech recognition');
+      }
+    }
+    
+    // Step G: Upload subtitle files to Azure Blob Storage
+    let webvttUrl: string | undefined = undefined;
+    let srtUrl: string | undefined = undefined;
+    
+    if (subtitleFiles) {
+      try {
+        logger.info('☁️ Uploading subtitle files to Azure Blob Storage...');
+        
+        const [webvttUpload, srtUpload] = await Promise.all([
+          uploadToBlob(webvttFilename, Buffer.from(subtitleFiles.webvtt, 'utf8'), 'text/vtt'),
+          uploadToBlob(srtFilename, Buffer.from(subtitleFiles.srt, 'utf8'), 'text/plain'),
+        ]);
+        
+        webvttUrl = webvttUpload;
+        srtUrl = srtUpload;
+        
+        logger.info('✅ Subtitle files uploaded to Azure Blob Storage');
+        logger.info(`📝 WebVTT URL: ${webvttUrl}`);
+        logger.info(`📝 SRT URL: ${srtUrl}`);
+      } catch (subtitleUploadError) {
+        logger.error('⚠️ Subtitle upload failed:', subtitleUploadError);
       }
     }
     
@@ -106,7 +163,11 @@ export const processYouTubeVideo = async (youtubeUrl: string): Promise<{
       duration_seconds: transcriptionResult?.duration,
       transcription: transcriptionResult?.transcription,
       transcription_language: transcriptionResult?.language,
-      transcription_segments: aiGeneratedSegments,
+      transcription_segments: finalSegments,
+      webvtt_blob_url: webvttUrl,
+      srt_blob_url: srtUrl,
+      webvtt_filename: webvttFilename,
+      srt_filename: srtFilename,
       status: 'completed',
     };
     
